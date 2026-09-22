@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub de Avaliação de Usabilidade e Ergonomia</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism subtle effect */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 30px -5px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Interactive mouse light effect */
+        .card-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(99, 102, 241, 0.15), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .glass-card:hover .card-glow {
+            opacity: 1;
+        }
+
+        /* Initial entrance reveal classes */
+        .reveal-item {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Background animated gradient mesh */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 60%);
+            filter: blur(40px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <div class="bg-mesh"></div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full border-b border-slate-800/80 glass-panel sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
+                        Portal HCI & Ergonomia
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Sistemas de Avaliação de Usabilidade</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center gap-x-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/20">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Ambiente Ativo
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow flex flex-col justify-center">
+
+        <!-- Hero Title Section -->
+        <div class="text-center max-w-3xl mx-auto mb-16 reveal-item">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-4">
+                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Plataforma Integrada de Inspeção
+            </div>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
+                Hub de Avaliação de <br class="hidden sm:inline"/>
+                <span class="bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    Usabilidade e Ergonomia
+                </span>
+            </h2>
+            <p class="text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
+                Central de ferramentas especializadas para diagnóstico de interfaces, consolidação de métricas heurísticas de Nielsen e inspeções ergonômicas de software.
+            </p>
+
+            <!-- Quick Filter Tabs -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-8" id="filterContainer">
+                <button onclick="filterCards('all')" class="filter-btn active px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white shadow-md transition-all">
+                    Todos os Recursos
+                </button>
+                <button onclick="filterCards('usabilidade')" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 transition-all">
+                    Usabilidade Heurística
+                </button>
+                <button onclick="filterCards('ergonomia')" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 transition-all">
+                    Ergonomia & Checklists
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+
+            <!-- CARD 1: Formulário de Avaliação Heurística -->
+            <div class="card-item glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group reveal-item" data-category="usabilidade">
+                <div class="card-glow"></div>
+
+                <div>
+                    <!-- Badge & Icon -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 shadow-inner">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                            Coleta de Dados
+                        </span>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">
+                        Formulário de Avaliação Heurística
+                    </h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                        Interface dedicada à realização e registro individual de testes de usabilidade baseados nas 10 Heurísticas de Jakob Nielsen. Registre problemas, classificações de severidade e notas detalhadas.
+                    </p>
+
+                    <!-- Features List -->
+                    <ul class="space-y-2 mb-8 text-xs text-slate-400 border-t border-slate-700/50 pt-4">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Avaliação detalhada das 10 heurísticas
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Atribuição de escala de severidade (0 a 4)
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Campos estruturados para recomendações
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Action Button -->
+                <a href="formulario_avaliacao_heuristica.html" target="_blank"
+                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/50 transition-all duration-300 group-hover:translate-x-1">
+                    <span>Acessar Formulário</span>
+                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- CARD 2: Dashboard de Análise de avaliações heurísticas -->
+            <div class="card-item glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group reveal-item" data-category="usabilidade">
+                <div class="card-glow"></div>
+
+                <div>
+                    <!-- Badge & Icon -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300 shadow-inner">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                            Analytics & BI
+                        </span>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                        Dashboard de Análise
+                    </h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                        Painel interativo para visualização consolidada dos dados coletados nas avaliações heurísticas. Exibe métricas globais, gráficos de distribuição de severidade e comparativos entre especialistas.
+                    </p>
+
+                    <!-- Features List -->
+                    <ul class="space-y-2 mb-8 text-xs text-slate-400 border-t border-slate-700/50 pt-4">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Gráficos dinâmicos de problemas identificados
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Consolidação de dados de múltiplos avaliadores
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Relatório executivo para tomada de decisão
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Action Button -->
+                <a href="dashboard_consolidado_heuristica.html" target="_blank"
+                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold shadow-lg shadow-cyan-600/30 hover:shadow-cyan-500/50 transition-all duration-300 group-hover:translate-x-1">
+                    <span>Abrir Dashboard</span>
+                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- CARD 3: Inspeção Ergonômica (ErgoList UENP) -->
+            <div class="card-item glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group reveal-item" data-category="ergonomia">
+                <div class="card-glow"></div>
+
+                <div>
+                    <!-- Badge & Icon -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-inner">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                            Checklist ErgoList
+                        </span>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
+                        Inspeção Ergonômica
+                    </h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                        Acesso completo ao sistema de diretrizes e checklists de verificação ergonômica de interfaces (Projeto ErgoList - UENP) para auditoria rigorosa de interação humano-computador.
+                    </p>
+
+                    <!-- Features List -->
+                    <ul class="space-y-2 mb-8 text-xs text-slate-400 border-t border-slate-700/50 pt-4">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Critérios ergonômicos de Bastien & Scapin
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Checklist completo interativo online
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Projeto acadêmico mantido pela UENP
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Action Button -->
+                <a href="https://thiagocoleti.github.io/ergolistuenp/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-600/30 hover:shadow-emerald-500/50 transition-all duration-300 group-hover:translate-x-1">
+                    <span>Acessar ErgoList</span>
+                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Quick Educational Info Section -->
+        <section class="glass-panel rounded-3xl p-8 border border-slate-700/60 reveal-item">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Resumo Rápido: As 10 Heurísticas de Usabilidade (Nielsen)
+                    </h3>
+                    <p class="text-sm text-slate-400 mt-1">
+                        Princípios fundamentais utilizados durante as etapas de avaliação no portal.
+                    </p>
+                </div>
+                <button onclick="toggleHeuristicsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-all flex items-center gap-2">
+                    <span>Expandir Detalhes</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+            </div>
+
+            <!-- Grid of 10 Heuristics -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="heuristicsGrid">
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H1</span>
+                    <span class="text-xs text-slate-300 font-medium">Visibilidade do Status</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H2</span>
+                    <span class="text-xs text-slate-300 font-medium">Correspondência com Mundo Real</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H3</span>
+                    <span class="text-xs text-slate-300 font-medium">Controle e Liberdade</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H4</span>
+                    <span class="text-xs text-slate-300 font-medium">Consistência e Padronização</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H5</span>
+                    <span class="text-xs text-slate-300 font-medium">Prevenção de Erros</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H6</span>
+                    <span class="text-xs text-slate-300 font-medium">Reconhecer em vez de Lembrar</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H7</span>
+                    <span class="text-xs text-slate-300 font-medium">Flexibilidade e Eficiência</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H8</span>
+                    <span class="text-xs text-slate-300 font-medium">Estética e Design Minimalista</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H9</span>
+                    <span class="text-xs text-slate-300 font-medium">Suporte para Diagnóstico de Erros</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 text-center hover:border-indigo-500/40 transition-colors">
+                    <span class="text-xs font-bold text-indigo-400 block">H10</span>
+                    <span class="text-xs text-slate-300 font-medium">Ajuda e Documentação</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-slate-800/80 glass-panel py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2 text-xs text-slate-400">
+                <span>Portal HCI & Ergonomia &copy; 2026</span>
+                <span>•</span>
+                <span>Design focado em Experiência do Usuário (UX)</span>
+            </div>
+
+            <div class="flex items-center space-x-4 text-xs text-slate-400">
+                <a href="https://thiagocoleti.github.io/ergolistuenp/" target="_blank" class="hover:text-indigo-400 transition-colors">
+                    Projeto ErgoList (UENP)
+                </a>
+                <span>•</span>
+                <span class="text-slate-500">Desenvolvido para Avaliações de Software</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Entrance animation trigger using IntersectionObserver
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('active');
+                        }, index * 100);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal-item').forEach(el => observer.observe(el));
+
+            // 2. Mouse glow tracking effect for cards
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+        });
+
+        // 3. Card Category Filter Functionality
+        function filterCards(category) {
+            const cards = document.querySelectorAll('.card-item');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                btn.classList.add('bg-slate-800/80', 'text-slate-300');
+            });
+
+            event.target.classList.remove('bg-slate-800/80', 'text-slate-300');
+            event.target.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 50);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        }
+
+        // 4. Toggle Nielsen Heuristics Detail
+        function toggleHeuristicsModal() {
+            const grid = document.getElementById('heuristicsGrid');
+            if (grid.classList.contains('hidden')) {
+                grid.classList.remove('hidden');
+            } else {
+                grid.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário de Avaliação Heurística</title>
+<style>
+:root {
+  --bg:#f4f6f8; --card:#fff; --text:#24313d; --muted:#667583;
+  --border:#d9e0e6; --accent:#315f86; --accent2:#e8f0f7;
+  --danger:#b42318;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.45;
+}
+header {
+  background:var(--accent); color:white; padding:28px 20px;
+}
+header .wrap, main { max-width:1100px; margin:auto; }
+h1 { margin:0 0 6px; font-size:28px; }
+header p { margin:0; opacity:.9; }
+main { padding:24px 16px 60px; }
+.toolbar {
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;
+}
+button {
+  border:0; border-radius:8px; padding:10px 15px; cursor:pointer;
+  font-weight:600; background:var(--accent); color:white;
+}
+button.secondary { background:#e7ebef; color:var(--text); }
+button.danger { background:#fff0ef; color:var(--danger); }
+.finding {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; margin-bottom:18px; overflow:hidden;
+  box-shadow:0 2px 8px rgba(20,35,50,.05);
+}
+.finding-header {
+  padding:16px 18px; display:flex; justify-content:space-between;
+  align-items:center; gap:12px; background:#fafbfc; border-bottom:1px solid var(--border);
+}
+.finding-header h2 { margin:0; font-size:18px; }
+.grid {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px;
+  padding:20px;
+}
+.full { grid-column:1/-1; }
+label { display:block; font-weight:650; margin-bottom:7px; }
+input[type=text], textarea {
+  width:100%; border:1px solid var(--border); border-radius:7px;
+  padding:10px; font:inherit; background:white;
+}
+textarea { min-height:90px; resize:vertical; }
+fieldset {
+  border:1px solid var(--border); border-radius:8px; padding:12px;
+  margin:0;
+}
+legend { padding:0 6px; font-weight:650; }
+.options {
+  display:flex; flex-wrap:wrap; gap:10px 16px;
+}
+.option { display:flex; align-items:center; gap:6px; font-weight:400; margin:0; }
+.option input { accent-color:var(--accent); }
+.help { color:var(--muted); font-size:13px; margin-top:5px; }
+.footer-actions {
+  display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;
+  position:sticky; bottom:12px; background:rgba(244,246,248,.94);
+  padding:10px 0;
+}
+.status { color:var(--muted); font-size:14px; align-self:center; }
+@media(max-width:760px) {
+  .grid { grid-template-columns:1fr; }
+  .full { grid-column:auto; }
+  .finding-header { align-items:flex-start; }
+}
+@media print {
+  body { background:white; }
+  header { background:white; color:black; padding:10px 0; }
+  .toolbar,.footer-actions,.finding-header button { display:none; }
+  .finding { box-shadow:none; break-inside:avoid; }
+  main { padding:0; }
+}
+
+.dashboard {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:22px; margin-bottom:20px; box-shadow:0 2px 8px rgba(20,35,50,.05);
+}
+.dashboard-header {
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  margin-bottom:18px;
+}
+.dashboard-header h2 { margin:0 0 4px; }
+.dashboard-header p { margin:0; color:var(--muted); }
+.dashboard-cards {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px;
+}
+.metric {
+  border:1px solid var(--border); border-radius:9px; padding:16px;
+  background:#fafbfc;
+}
+.metric span { display:block; color:var(--muted); font-size:13px; }
+.metric strong { display:block; font-size:28px; margin-top:4px; }
+.dashboard-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px;
+}
+.chart-card {
+  border:1px solid var(--border); border-radius:9px; padding:16px;
+  background:white;
+}
+.chart-card h3 { margin:0 0 14px; font-size:16px; }
+.bar-row {
+  display:grid; grid-template-columns:170px 1fr 38px; align-items:center;
+  gap:9px; margin:9px 0; font-size:13px;
+}
+.bar { height:14px; background:#e7edf2; border-radius:99px; overflow:hidden; }
+.bar > span { display:block; height:100%; background:var(--accent); }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th, td { border-bottom:1px solid var(--border); padding:10px 8px; text-align:left; vertical-align:top; }
+th { background:#fafbfc; }
+.badge {
+  display:inline-block; padding:3px 7px; border-radius:99px;
+  background:var(--accent2); font-weight:650;
+}
+@media(max-width:760px) {
+  .dashboard-cards,.dashboard-grid { grid-template-columns:1fr; }
+  .bar-row { grid-template-columns:125px 1fr 30px; }
+  .dashboard-header { align-items:flex-start; flex-direction:column; }
+}
+@media print {
+  .dashboard { display:block !important; }
+  .dashboard-header button { display:none; }
+}
+
+.metadata-card {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:18px; margin-bottom:18px; box-shadow:0 2px 8px rgba(20,35,50,.05);
+}
+.metadata-card h2 { margin:0 0 14px; font-size:18px; }
+.metadata-grid { display:grid; grid-template-columns:2fr 2fr 1fr; gap:14px; }
+@media(max-width:760px) { .metadata-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Formulário de Avaliação Heurística</h1>
+    <p>Registro dos problemas de usabilidade identificados durante a avaliação.</p>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button type="button" onclick="addFinding()">+ Adicionar avaliação</button>
+    <button type="button" class="secondary" onclick="saveForm()">Salvar no navegador</button>
+    <button type="button" class="secondary" onclick="loadForm()">Carregar</button>
+    <button type="button" class="secondary" onclick="window.print()">Imprimir / PDF</button>
+    <button type="button" onclick="finalizeEvaluation()">Finalizar Avaliação</button>
+    <button type="button" class="secondary" onclick="exportJSON()">Exportar JSON</button>
+    <button type="button" class="danger" onclick="clearForm()">Limpar tudo</button>
+  </div>
+
+  
+<section class="metadata-card">
+  <h2>Identificação da avaliação</h2>
+  <div class="metadata-grid">
+    <div>
+      <label for="evaluatorName">Avaliador</label>
+      <input id="evaluatorName" type="text" placeholder="Nome do avaliador">
+    </div>
+    <div>
+      <label for="systemName">Sistema / Aplicação</label>
+      <input id="systemName" type="text" placeholder="Nome do sistema avaliado">
+    </div>
+    <div>
+      <label for="evaluationDate">Data</label>
+      <input id="evaluationDate" type="date">
+    </div>
+  </div>
+</section>
+
+<form id="evaluationForm"></form>
+
+  
+<div id="dashboard" class="dashboard" style="display:none;">
+  <div class="dashboard-header">
+    <div>
+      <h2>Resultado da Avaliação</h2>
+      <p>Resumo dos problemas de usabilidade registrados.</p>
+    </div>
+    <button type="button" class="secondary" onclick="closeDashboard()">Voltar à avaliação</button>
+  </div>
+
+  <div class="dashboard-cards">
+    <div class="metric"><span>Problemas registrados</span><strong id="metricTotal">0</strong></div>
+    <div class="metric"><span>Severidade média</span><strong id="metricAvg">—</strong></div>
+    <div class="metric"><span>Problemas graves/catastróficos</span><strong id="metricCritical">0</strong></div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="chart-card">
+      <h3>Distribuição por severidade</h3>
+      <div id="severityChart"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Distribuição por natureza</h3>
+      <div id="natureChart"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Problemas registrados</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Heurística</th><th>Funcionalidade</th>
+            <th>Severidade</th><th>Natureza</th><th>Correção possível</th>
+          </tr>
+        </thead>
+        <tbody id="resultTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="footer-actions">
+    <button type="button" onclick="addFinding()">+ Adicionar avaliação</button>
+    <span class="status" id="status">Os dados permanecem neste navegador até serem exportados/impressos.</span>
+  </div>
+</main>
+
+<template id="findingTemplate">
+<section class="finding">
+  <div class="finding-header">
+    <h2 class="finding-title">Avaliação</h2>
+    <button type="button" class="danger remove-btn">Remover</button>
+  </div>
+
+  <div class="grid">
+    <div>
+      <label>Heurística Avaliada</label>
+      <input type="text" name="heuristica">
+    </div>
+    <div>
+      <label>Funcionalidade</label>
+      <input type="text" name="funcionalidade">
+    </div>
+
+    <fieldset class="full">
+      <legend>Verificação — Grau de Severidade</legend>
+      <div class="options">
+        <label class="option"><input type="radio" name="severidade" value="0"> 0 – Sem importância</label>
+        <label class="option"><input type="radio" name="severidade" value="1"> 1 – Cosmético</label>
+        <label class="option"><input type="radio" name="severidade" value="2"> 2 – Simples</label>
+        <label class="option"><input type="radio" name="severidade" value="3"> 3 – Grave</label>
+        <label class="option"><input type="radio" name="severidade" value="4"> 4 – Catastrófico</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Natureza do problema</legend>
+      <div class="options">
+        <label class="option"><input type="radio" name="natureza" value="Barreira"> Barreira</label>
+        <label class="option"><input type="radio" name="natureza" value="Obstáculo"> Obstáculo</label>
+        <label class="option"><input type="radio" name="natureza" value="Ruído"> Ruído</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Perspectiva do usuário</legend>
+      <div class="options">
+        <label class="option"><input type="radio" name="usuario" value="Problema geral"> Problema geral</label>
+        <label class="option"><input type="radio" name="usuario" value="Problema preliminar"> Problema preliminar</label>
+        <label class="option"><input type="radio" name="usuario" value="Problema Especial"> Problema Especial</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Perspectiva da tarefa</legend>
+      <div class="options">
+        <label class="option"><input type="radio" name="tarefa" value="Problema principal"> Problema principal</label>
+        <label class="option"><input type="radio" name="tarefa" value="Problema secundário"> Problema secundário</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Perspectiva do projeto</legend>
+      <div class="options">
+        <label class="option"><input type="radio" name="projeto" value="Problema falso"> Problema falso</label>
+        <label class="option"><input type="radio" name="projeto" value="Problema novo"> Problema novo</label>
+        <label class="option"><input type="radio" name="projeto" value="Não se aplica"> Não se aplica</label>
+      </div>
+    </fieldset>
+
+    <div class="full">
+      <label>Descrição do problema</label>
+      <textarea name="descricao"></textarea>
+    </div>
+    <div class="full">
+      <label>Contexto</label>
+      <textarea name="contexto"></textarea>
+    </div>
+    <div class="full">
+      <label>Causa</label>
+      <textarea name="causa"></textarea>
+    </div>
+    <div class="full">
+      <label>Efeito sobre o usuário</label>
+      <textarea name="efeitoUsuario"></textarea>
+    </div>
+    <div class="full">
+      <label>Efeito sobre a tarefa</label>
+      <textarea name="efeitoTarefa"></textarea>
+    </div>
+    <div class="full">
+      <label>Correção possível</label>
+      <textarea name="correcao"></textarea>
+    </div>
+  </div>
+</section>
+</template>
+
+<script>
+let count = 0;
+
+function addFinding(data = {}) {
+  count++;
+  const node = document.getElementById('findingTemplate').content.cloneNode(true);
+  const section = node.querySelector('.finding');
+  section.dataset.id = count;
+  section.querySelector('.finding-title').textContent = `Avaliação ${count}`;
+
+  section.querySelector('.remove-btn').onclick = () => {
+    section.remove();
+    renumber();
+  };
+
+  const radioNames = ['severidade','natureza','usuario','tarefa','projeto'];
+  section.querySelectorAll('[name]').forEach(el => {
+    const base = el.name;
+    if (radioNames.includes(base)) el.name = `${base}_${count}`;
+    if (data[base] !== undefined && el.type !== 'radio') el.value = data[base];
+    if (el.type === 'radio' && data[base] === el.value) el.checked = true;
+  });
+
+  document.getElementById('evaluationForm').appendChild(node);
+  return section;
+}
+
+function renumber() {
+  document.querySelectorAll('.finding').forEach((s, i) => {
+    s.dataset.id = i + 1;
+    s.querySelector('.finding-title').textContent = `Avaliação ${i + 1}`;
+  });
+  count = document.querySelectorAll('.finding').length;
+}
+
+function collect() {
+  return [...document.querySelectorAll('.finding')].map(section => {
+    const result = {};
+    section.querySelectorAll('[name]').forEach(el => {
+      const base = el.name.replace(/_(\d+)$/, '');
+      if (el.type === 'radio') {
+        if (el.checked) result[base] = el.value;
+      } else result[base] = el.value;
+    });
+    return result;
+  });
+}
+
+function buildExportObject() {
+  const records = collect().filter(item =>
+    Object.values(item).some(v => String(v || '').trim() !== '')
+  );
+  return {
+    formato: "avaliacao-heuristica",
+    versao: "1.0",
+    exportadoEm: new Date().toISOString(),
+    avaliador: document.getElementById('evaluatorName').value.trim(),
+    sistema: document.getElementById('systemName').value.trim(),
+    dataAvaliacao: document.getElementById('evaluationDate').value,
+    totalProblemas: records.length,
+    resultados: records
+  };
+}
+
+function exportJSON() {
+  const payload = buildExportObject();
+  if (!payload.resultados.length) {
+    alert('Registre pelo menos um problema antes de exportar.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const evaluator = (payload.avaliador || 'avaliador').replace(/[^a-z0-9_-]+/gi, '_');
+  a.href = url;
+  a.download = `avaliacao_heuristica_${evaluator}_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus('JSON exportado com sucesso.');
+}
+
+function saveForm() {
+  localStorage.setItem('avaliacaoHeuristica', JSON.stringify(buildExportObject()));
+  setStatus('Avaliação salva neste navegador.');
+}
+
+function loadForm() {
+  const saved = localStorage.getItem('avaliacaoHeuristica');
+  if (!saved) return setStatus('Nenhuma avaliação salva foi encontrada.');
+  const payload = JSON.parse(saved);
+  document.getElementById('evaluatorName').value = payload.avaliador || '';
+  document.getElementById('systemName').value = payload.sistema || '';
+  document.getElementById('evaluationDate').value = payload.dataAvaliacao || '';
+  document.getElementById('evaluationForm').innerHTML = '';
+  count = 0;
+  (payload.resultados || []).forEach(addFinding);
+  if (!payload.resultados?.length) addFinding();
+  setStatus('Avaliação carregada.');
+}
+
+function clearForm() {
+  if (!confirm('Deseja apagar todas as avaliações desta página?')) return;
+  document.getElementById('evaluationForm').innerHTML = '';
+  count = 0;
+  localStorage.removeItem('avaliacaoHeuristica');
+  addFinding();
+  setStatus('Formulário limpo.');
+}
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+
+function finalizeEvaluation() {
+  const data = collect().filter(item =>
+    Object.values(item).some(v => String(v || '').trim() !== '')
+  );
+
+  if (!data.length) {
+    alert('Registre pelo menos um problema antes de finalizar a avaliação.');
+    return;
+  }
+
+  document.getElementById('evaluationForm').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.querySelector('.toolbar').style.display = 'none';
+  document.querySelector('.footer-actions').style.display = 'none';
+  document.querySelector('.metadata-card').style.display = 'none';
+
+  const severities = [
+    ['0 – Sem importância', 0],
+    ['1 – Cosmético', 1],
+    ['2 – Simples', 2],
+    ['3 – Grave', 3],
+    ['4 – Catastrófico', 4]
+  ];
+  const nature = ['Barreira','Obstáculo','Ruído'];
+
+  const counts = [0,0,0,0,0];
+  let totalSeverity = 0, severityN = 0, critical = 0;
+  const natureCounts = {Barreira:0, Obstáculo:0, Ruído:0};
+
+  data.forEach(item => {
+    if (item.severidade !== undefined) {
+      const s = Number(item.severidade);
+      if (s >= 0 && s <= 4) {
+        counts[s]++; totalSeverity += s; severityN++;
+        if (s >= 3) critical++;
+      }
+    }
+    if (natureCounts[item.natureza] !== undefined) natureCounts[item.natureza]++;
+  });
+
+  document.getElementById('metricTotal').textContent = data.length;
+  document.getElementById('metricAvg').textContent =
+    severityN ? (totalSeverity / severityN).toFixed(1) : '—';
+  document.getElementById('metricCritical').textContent = critical;
+
+  renderBars('severityChart',
+    severities.map((s,i) => [s[0], counts[i]]), data.length);
+  renderBars('natureChart',
+    nature.map(n => [n, natureCounts[n]]), data.length);
+
+  const tbody = document.getElementById('resultTable');
+  tbody.innerHTML = data.map((item, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(item.heuristica || '—')}</td>
+      <td>${escapeHtml(item.funcionalidade || '—')}</td>
+      <td><span class="badge">${escapeHtml(item.severidade ?? '—')}</span></td>
+      <td>${escapeHtml(item.natureza || '—')}</td>
+      <td>${escapeHtml(item.correcao || '—')}</td>
+    </tr>
+  `).join('');
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderBars(targetId, items, total) {
+  const target = document.getElementById(targetId);
+  target.innerHTML = items.map(([label, value]) => {
+    const pct = total ? (value / total) * 100 : 0;
+    return `<div class="bar-row">
+      <span>${escapeHtml(label)}</span>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      <strong>${value}</strong>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[c]));
+}
+
+function closeDashboard() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('evaluationForm').style.display = 'block';
+  document.querySelector('.toolbar').style.display = 'flex';
+  document.querySelector('.footer-actions').style.display = 'flex';
+  document.querySelector('.metadata-card').style.display = 'block';
+}
+
+addFinding();
+addFinding();
+addFinding();
+addFinding();
+</script>
+</body>
+</html>

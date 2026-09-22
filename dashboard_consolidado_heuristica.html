@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consolidador de Avaliações Heurísticas</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--text:#24313d;--muted:#667583;--border:#d9e0e6;--accent:#315f86;--accent2:#e8f0f7}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
+header{background:var(--accent);color:#fff;padding:28px 20px}header .wrap,main{max-width:1200px;margin:auto}h1{margin:0 0 6px;font-size:28px}header p{margin:0;opacity:.9}
+main{padding:24px 16px 60px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+button{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600;background:var(--accent);color:#fff}
+button.secondary{background:#e7ebef;color:var(--text)}
+.dropzone{background:#fff;border:2px dashed #b9c5cf;border-radius:12px;padding:30px;text-align:center;margin-bottom:20px}
+.dropzone.drag{border-color:var(--accent);background:var(--accent2)}
+.dropzone h2{margin:0 0 7px}.dropzone p{color:var(--muted);margin:0 0 15px}
+#fileInput{display:none}.file-list{margin-top:15px;text-align:left}
+.file-item{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--border);padding:9px 0;font-size:14px}
+.dashboard{display:none}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.metric{background:#fff;border:1px solid var(--border);border-radius:10px;padding:15px}
+.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{font-size:26px;display:block;margin-top:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:17px}.card h2{margin:0 0 15px;font-size:18px}
+.bar-row{display:grid;grid-template-columns:190px 1fr 40px;align-items:center;gap:9px;margin:9px 0;font-size:13px}
+.bar{height:14px;background:#e7edf2;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid var(--border);padding:9px 8px;text-align:left;vertical-align:top}th{background:#fafbfc}
+.badge{display:inline-block;padding:3px 7px;border-radius:99px;background:var(--accent2);font-weight:650}
+.status{color:var(--muted);font-size:14px;margin:8px 0}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+@media(max-width:600px){.cards{grid-template-columns:1fr}.bar-row{grid-template-columns:125px 1fr 30px}}
+@media print{header{background:#fff;color:#000;padding:10px 0}.dropzone,.toolbar{display:none}.dashboard{display:block!important}.card,.metric{box-shadow:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>Consolidador de Avaliações Heurísticas</h1>
+<p>Importe os arquivos JSON dos avaliadores para consolidar os resultados da inspeção.</p></div></header>
+
+<main>
+<div class="toolbar">
+  <button type="button" onclick="document.getElementById('fileInput').click()">Selecionar JSON</button>
+  <button type="button" class="secondary" onclick="generateDashboard()">Gerar Dashboard</button>
+  <button type="button" class="secondary" onclick="window.print()">Imprimir / PDF</button>
+  <button type="button" class="secondary" onclick="clearAll()">Limpar arquivos</button>
+  <input id="fileInput" type="file" accept=".json,application/json" multiple>
+</div>
+
+<div id="dropzone" class="dropzone">
+  <h2>Arraste os JSON dos avaliadores aqui</h2>
+  <p>Você pode selecionar um ou vários arquivos simultaneamente.</p>
+  <button type="button" class="secondary" onclick="document.getElementById('fileInput').click()">Adicionar arquivos</button>
+  <div id="fileList" class="file-list"></div>
+</div>
+
+<div id="dashboard" class="dashboard">
+  <div class="cards">
+    <div class="metric"><span>Avaliadores</span><strong id="mEvaluators">0</strong></div>
+    <div class="metric"><span>Problemas</span><strong id="mProblems">0</strong></div>
+    <div class="metric"><span>Severidade média</span><strong id="mAverage">—</strong></div>
+    <div class="metric"><span>Graves/catastróficos</span><strong id="mCritical">0</strong></div>
+    <div class="metric"><span>Heurísticas envolvidas</span><strong id="mHeuristics">0</strong></div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><h2>Severidade consolidada</h2><div id="severityChart"></div></div>
+    <div class="card"><h2>Natureza dos problemas</h2><div id="natureChart"></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <h2>Problemas por heurística</h2><div id="heuristicChart"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <h2>Resumo por avaliador</h2>
+    <div class="table-wrap"><table><thead><tr>
+      <th>Avaliador</th><th>Sistema</th><th>Problemas</th><th>Severidade média</th><th>Graves/Catastróficos</th>
+    </tr></thead><tbody id="evaluatorTable"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Todos os problemas encontrados</h2>
+    <div class="table-wrap"><table><thead><tr>
+      <th>Avaliador</th><th>Heurística</th><th>Funcionalidade</th><th>Severidade</th><th>Natureza</th><th>Descrição</th><th>Correção</th>
+    </tr></thead><tbody id="problemTable"></tbody></table></div>
+  </div>
+</div>
+<p id="status" class="status">Nenhum arquivo carregado.</p>
+</main>
+
+<script>
+let loaded = [];
+
+const input = document.getElementById('fileInput');
+const dropzone = document.getElementById('dropzone');
+input.addEventListener('change', e => addFiles([...e.target.files]));
+['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('drag')}));
+['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('drag')}));
+dropzone.addEventListener('drop', e => addFiles([...e.dataTransfer.files].filter(f=>f.name.toLowerCase().endsWith('.json'))));
+
+function addFiles(files){
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=()=> {
+      try {
+        const data=JSON.parse(reader.result);
+        if(!data.resultados || !Array.isArray(data.resultados)) throw new Error('Formato incompatível');
+        loaded.push({file:file.name,data});
+        renderFileList();
+        setStatus(`${loaded.length} arquivo(s) carregado(s).`);
+      } catch(err) {
+        alert(`Não foi possível ler "${file.name}". Verifique se ele foi exportado pela página de avaliação.`);
+      }
+    };
+    reader.readAsText(file,'UTF-8');
+  });
+}
+
+function renderFileList(){
+  document.getElementById('fileList').innerHTML=loaded.map((x,i)=>`
+    <div class="file-item"><span>${escapeHtml(x.file)} — ${escapeHtml(x.data.avaliador || 'Avaliador não informado')} (${x.data.resultados.length} problemas)</span>
+    <button type="button" class="secondary" onclick="removeFile(${i})">Remover</button></div>`).join('');
+}
+function removeFile(i){loaded.splice(i,1);renderFileList();setStatus(`${loaded.length} arquivo(s) carregado(s).`)}
+function clearAll(){loaded=[];renderFileList();document.getElementById('dashboard').style.display='none';setStatus('Nenhum arquivo carregado.')}
+function setStatus(t){document.getElementById('status').textContent=t}
+
+function aggregate(){
+  const problems=[];
+  loaded.forEach(x=>x.data.resultados.forEach(r=>problems.push({
+    ...r, avaliador:x.data.avaliador||'Não informado', sistema:x.data.sistema||'—', arquivo:x.file
+  })));
+  return problems;
+}
+function counts(items,key,values){
+  const c={}; values.forEach(v=>c[v]=0);
+  items.forEach(x=>{if(c[x[key]]!==undefined)c[x[key]]++});
+  return c;
+}
+function renderBars(id, entries, total){
+  document.getElementById(id).innerHTML=entries.map(([label,value])=>{
+    const pct=total?(value/total)*100:0;
+    return `<div class="bar-row"><span>${escapeHtml(label)}</span><div class="bar"><span style="width:${pct}%"></span></div><strong>${value}</strong></div>`;
+  }).join('');
+}
+function generateDashboard(){
+  if(!loaded.length){alert('Carregue pelo menos um JSON.');return}
+  const problems=aggregate(), n=problems.length;
+  const severity=[0,0,0,0,0];
+  problems.forEach(p=>{const s=Number(p.severidade);if(s>=0&&s<=4)severity[s]++});
+  const avg=problems.reduce((a,p)=>a+(Number(p.severidade)||0),0)/n;
+  const critical=problems.filter(p=>Number(p.severidade)>=3).length;
+  const heur={}; problems.forEach(p=>{const h=p.heuristica||'Não informado';heur[h]=(heur[h]||0)+1});
+  const nature=counts(problems,'natureza',['Barreira','Obstáculo','Ruído']);
+
+  document.getElementById('mEvaluators').textContent=loaded.length;
+  document.getElementById('mProblems').textContent=n;
+  document.getElementById('mAverage').textContent=isFinite(avg)?avg.toFixed(1):'—';
+  document.getElementById('mCritical').textContent=critical;
+  document.getElementById('mHeuristics').textContent=Object.keys(heur).length;
+
+  renderBars('severityChart',[
+    ['0 – Sem importância',severity[0]],['1 – Cosmético',severity[1]],['2 – Simples',severity[2]],
+    ['3 – Grave',severity[3]],['4 – Catastrófico',severity[4]]
+  ],n);
+  renderBars('natureChart',Object.entries(nature),n);
+  renderBars('heuristicChart',Object.entries(heur).sort((a,b)=>b[1]-a[1]),n);
+
+  document.getElementById('evaluatorTable').innerHTML=loaded.map(x=>{
+    const ps=x.data.resultados||[], av=ps.length?ps.reduce((a,p)=>a+(Number(p.severidade)||0),0)/ps.length:0;
+    const cr=ps.filter(p=>Number(p.severidade)>=3).length;
+    return `<tr><td>${escapeHtml(x.data.avaliador||'Não informado')}</td><td>${escapeHtml(x.data.sistema||'—')}</td><td>${ps.length}</td><td>${av.toFixed(1)}</td><td>${cr}</td></tr>`;
+  }).join('');
+
+  document.getElementById('problemTable').innerHTML=problems.map(p=>`
+    <tr><td>${escapeHtml(p.avaliador)}</td><td>${escapeHtml(p.heuristica||'—')}</td>
+    <td>${escapeHtml(p.funcionalidade||'—')}</td><td><span class="badge">${escapeHtml(p.severidade??'—')}</span></td>
+    <td>${escapeHtml(p.natureza||'—')}</td><td>${escapeHtml(p.descricao||'—')}</td><td>${escapeHtml(p.correcao||'—')}</td></tr>
+  `).join('');
+
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+  setStatus(`Dashboard consolidado a partir de ${loaded.length} avaliador(es).`);
+}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+</script>
+</body>
+</html>
